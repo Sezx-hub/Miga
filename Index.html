@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyra Gojo - Glassmorphism Effect</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #3498db, #ff4136); /* Blue to Red Gradient */
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: white;
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.7);
+        }
+
+        .buttons {
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* Glassmorphism-inspired Button Styles */
+        .btn {
+            background: rgba(255, 255, 255, 0.1); /* Transparent background */
+            backdrop-filter: blur(10px); /* Blur the background behind the button */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4); /* Light border for glass look */
+            padding: 15px 30px;
+            margin: 15px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.3); /* Soft glowing shadow */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2); /* Slightly more opaque on hover */
+            transform: scale(1.1); /* Make the button grow */
+            box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.6); /* Enhance the glow */
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Kyra Gojo</h1>
+
+    <div class="buttons">
+        <button class="btn" onclick="window.open('https://discord.gg/nrZsX5HGTd', '_blank')">Join Discord</button>
+        <button class="btn">Script = Not Released Yet, Join Discord</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // Initialize canvas and context
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Adjust particle count and connection distance based on screen size
+        const particleCount = window.innerWidth < 768 ? 50 : 100; // Mobile: fewer particles
+        const maxConnectionDistance = window.innerWidth < 768 ? 100 : 150;
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Particle class
+        class Particle {
+            constructor(x, y, vx, vy, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = radius;
+                this.color = color;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off walls
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.vx *= -1;
+                }
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.vy *= -1;
+                }
+            }
+        }
+
+        const particles = [];
+
+        // Create particles with more red (50%), blue (25%), and white (25%) colors
+        for (let i = 0; i < particleCount; i++) {
+            const radius = 2;
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const vx = (Math.random() - 0.5) * 2;
+            const vy = (Math.random() - 0.5) * 2;
+
+            let color;
+            if (i % 2 === 0) {
+                color = 'rgba(255, 0, 0, 0.7)'; // 50% red
+            } else if (i % 4 === 1) {
+                color = 'rgba(0, 0, 255, 0.7)'; // 25% blue
+            } else {
+                color = 'rgba(255, 255, 255, 0.8)'; // 25% white
+            }
+
+            particles.push(new Particle(x, y, vx, vy, radius, color));
+        }
+
+        // Connect particles if they are within proximity
+        function connectParticles() {
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a + 1; b < particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < maxConnectionDistance) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance / maxConnectionDistance})`;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+
+</body>
+</html>
